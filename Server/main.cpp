@@ -1,0 +1,35 @@
+#include "Server.h"
+#include <iostream>
+#include <memory>
+#include <netinet/in.h>
+#include <stdexcept>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <thread>
+
+int main(){
+    std::unique_ptr<Server> server = std::make_unique<Server>(8080);
+    std::unique_ptr<sockaddr_in> client_addr = std::make_unique<sockaddr_in>();
+    int client_fd;
+    socklen_t client_addr_len = sizeof(*client_addr);
+
+    try{
+        server->startServer();
+    }catch(std::runtime_error e){
+        std::cerr << e.what();
+        return -1;
+    }
+    
+    while(true){
+        client_fd = accept(server->getServerSocket(),reinterpret_cast<sockaddr*>(client_addr.get()), &client_addr_len);
+        try{
+            std::thread client_thread([&server, client_fd](){
+                server->handleClientConnection(client_fd);
+            });
+            client_thread.detach();
+        }catch(std::runtime_error e){
+            std::cerr << e.what();
+        }
+    }
+    return 0;
+}
