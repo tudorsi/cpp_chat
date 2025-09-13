@@ -20,6 +20,15 @@ int main(){
         return -1;
     }
     
+    std::thread broadcast_thread([&server]{
+        while(true){
+            server->brodacastMessages();
+        }
+    });
+
+    broadcast_thread.detach();
+
+   
     while(true){
         client_fd = accept(server->getServerSocket(),reinterpret_cast<sockaddr*>(client_addr.get()), &client_addr_len);
         try{
@@ -31,5 +40,6 @@ int main(){
             std::cerr << e.what();
         }
     }
+
     return 0;
 }

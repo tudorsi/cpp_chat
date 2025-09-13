@@ -1,9 +1,14 @@
 #pragma once
 
+#include <condition_variable>
 #include <mutex>
+#include <queue>
 #include <string>
 #include <netinet/in.h>
 #include <vector>
+#include "Message.h"
+
+//TODO: create Client class and Message class 
 class Server {
 
 private:
@@ -11,7 +16,11 @@ private:
     int m_server_socket;
     sockaddr_in m_server_address;
     std::vector<int> m_clients; // stores  client file descriptors
-    std::mutex clients_mutex;
+    std::mutex m_clients_mutex;
+    std::queue<Message> m_broadcast_queue;
+    std::mutex m_broadcast_mutex;
+    std::condition_variable m_broadcast_cv;
+
 public:
     Server(int port);
     void startServer();
@@ -20,4 +29,6 @@ public:
     void writeToClient(int client_socket);
     int getServerSocket() const;
     sockaddr_in&  getServerAddress();
+    void addMessageToQueue(int client_fd, const std::string& message);
+   void brodacastMessages();
 };
