@@ -8,7 +8,6 @@
 #include <vector>
 #include "Message.h"
 
-//TODO: create Client class and Message class 
 class Server {
 
 private:
