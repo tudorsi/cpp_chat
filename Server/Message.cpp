@@ -1,3 +1,4 @@
 #include "Message.h"
-Message::Message(int client_fd, std::string message)
-    :m_client_fd{client_fd}, m_message{message}{}
+Message::Message(const User& user, std::string message)
+    :m_user{user}, m_message{message}{}
+
