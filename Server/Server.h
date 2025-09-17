@@ -15,7 +15,7 @@ private:
     int m_server_port;
     int m_server_socket;
     sockaddr_in m_server_address;
-    std::vector<User*> m_clients;
+    std::vector<User> m_clients; // todo: store unique_ptr instead of raw pointer
     std::mutex m_clients_mutex;
     std::queue<Message> m_broadcast_queue;
     std::mutex m_broadcast_mutex;
