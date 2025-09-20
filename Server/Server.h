@@ -1,6 +1,7 @@
 #pragma once
 
 #include <condition_variable>
+#include <functional>
 #include <mutex>
 #include <queue>
 #include <string>
@@ -21,6 +22,9 @@ private:
     std::mutex m_broadcast_mutex;
     std::condition_variable m_broadcast_cv;
 
+protected:
+    std::string readFromClient(int client_fd, std::function<void()>&& callback = [](){});
+
 public:
     Server(int port);
     void startServer();
@@ -31,4 +35,5 @@ public:
     sockaddr_in&  getServerAddress();
     void addMessageToQueue(const Message& message);
     void brodacastMessages();
+
 };
