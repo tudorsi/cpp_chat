@@ -42,7 +42,7 @@ void Server::handleClientConnection(int client_fd){
         std::cout << "Client connection requested!" << std::endl;
         
         //Read client name
-        std::string user_name = readFromClient(client_fd, [](){}); 
+        std::string user_name = readFromClient(client_fd); 
         m_clients_mutex.lock();
         User user{client_fd, user_name};
         m_clients.push_back(user);

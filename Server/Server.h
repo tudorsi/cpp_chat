@@ -28,7 +28,7 @@ public:
     void  handleClientConnection(int client_fd); 
     std::string readFromClient();
     void writeToClient(int client_socket);
-    std::string readFromClient(int client_fd, std::function<void()>&& callback);
+    std::string readFromClient(int client_fd, std::function<void()>&& callback = [](){});
     int getServerSocket() const;
     sockaddr_in&  getServerAddress();
     void addMessageToQueue(const Message& message);
