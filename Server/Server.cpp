@@ -81,9 +81,9 @@ void Server::handleClientConnection(int client_fd){
 
                 read_buffer.push_back('\n');
                 client_message = std::string(read_buffer.begin(), read_buffer.end());
-                std::unique_ptr<Message> message = std::make_unique<Message>(user, client_message); //TODO: store message on stack
+                Message message{user, client_message};
                 std::cout << user.m_username << " said: " << client_message;
-                addMessageToQueue(*message);
+                addMessageToQueue(message);
 
                 std::fill(read_buffer.begin(), read_buffer.end(), 0); // clear the buffer before next read
                 client_message = "";
