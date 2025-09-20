@@ -1,9 +1,10 @@
 #pragma once
 #include <string>
+#include "User.h"
 
 struct Message{
-    int m_client_fd;
+    User m_user;    
     std::string m_message;
 
-    Message(int client_fd, std::string message);
+    Message(const User& user, std::string message);
 };

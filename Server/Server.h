@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <vector>
 #include "Message.h"
+#include "User.h"
 
 class Server {
 
@@ -14,7 +15,7 @@ private:
     int m_server_port;
     int m_server_socket;
     sockaddr_in m_server_address;
-    std::vector<int> m_clients; // stores  client file descriptors
+    std::vector<User> m_clients; // todo: store unique_ptr instead of raw pointer
     std::mutex m_clients_mutex;
     std::queue<Message> m_broadcast_queue;
     std::mutex m_broadcast_mutex;
@@ -28,6 +29,6 @@ public:
     void writeToClient(int client_socket);
     int getServerSocket() const;
     sockaddr_in&  getServerAddress();
-    void addMessageToQueue(int client_fd, const std::string& message);
-   void brodacastMessages();
+    void addMessageToQueue(const Message& message);
+    void brodacastMessages();
 };
