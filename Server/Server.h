@@ -22,15 +22,18 @@ private:
     std::mutex m_broadcast_mutex;
     std::condition_variable m_broadcast_cv;
 
+protected:
+    std::string readFromClient(int client_fd, std::function<void()>&& callback = [](){});
+
 public:
     Server(int port);
     void startServer();
     void  handleClientConnection(int client_fd); 
     std::string readFromClient();
     void writeToClient(int client_socket);
-    std::string readFromClient(int client_fd, std::function<void()>&& callback = [](){});
     int getServerSocket() const;
     sockaddr_in&  getServerAddress();
     void addMessageToQueue(const Message& message);
     void brodacastMessages();
+
 };
