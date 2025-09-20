@@ -1,8 +1,8 @@
 #include "Server.h"
 #include <iostream>
-#include <memory>
 #include <mutex>
 #include <netinet/in.h>
+#include <string>
 #include<unistd.h>
 #include <ostream>
 #include <stdexcept>
@@ -42,54 +42,45 @@ void Server::handleClientConnection(int client_fd){
         std::cout << "Client connection requested!" << std::endl;
         
         //Read client name
-        std::vector<char> read_buffer(2048);
-        ssize_t buf_size = 0;
+        std::string user_name = readFromClient(client_fd, [](){}); 
+        m_clients_mutex.lock();
+        User user{client_fd, user_name};
+        m_clients.push_back(user);
+        m_clients_mutex.unlock();   
+        std::cout << "Client added to vector" << std::endl;
+        
         std::string client_message;
-        buf_size = read(client_fd, read_buffer.data(), read_buffer.size());
-        client_message = std::string(read_buffer.data(), buf_size);
 
-        if(buf_size < 0){
-            throw std::runtime_error("Failed to read client message!");
-        }else if(buf_size == 0){
-            std::cout << "Client disconnected!" << std::endl;
-        }else{
-            read_buffer.push_back('\0');
-            m_clients_mutex.lock();
-            User user{client_fd, client_message};
-            m_clients.push_back(user);
-            m_clients_mutex.unlock();   
-            std::cout << "Client added to vector" << std::endl;
+        //read messages while client is connected
+        while(true){
+            client_message = readFromClient(client_fd, [this, &user](){
+                std::lock_guard<std::mutex> clients_lock(m_clients_mutex);
+                m_clients.erase(std::remove(m_clients.begin(), m_clients.end(), user), m_clients.end());
+            });
 
-            std::fill(read_buffer.begin(), read_buffer.end(), 0);
-            client_message = "";
-            
-            //read messages while client is connected
-            //TODO: extract message reading to separate method
-            while(true){
-                buf_size = read(client_fd, read_buffer.data(), read_buffer.size());
-                if(buf_size < 0){
-                    throw std::runtime_error("Failed to read client message!");
-                }else if(buf_size == 0){
-                    //remove the disconnected client
-                    m_clients_mutex.lock();
-                    m_clients.erase(std::remove(m_clients.begin(), m_clients.end(), user), m_clients.end());
-                    m_clients_mutex.unlock();
-
-                    std::cout << "Client disconnected!" << std::endl;
-                    break;
-                }
-
-                read_buffer.push_back('\n');
-                client_message = std::string(read_buffer.begin(), read_buffer.end());
-                Message message{user, client_message};
-                std::cout << user.m_username << " said: " << client_message;
-                addMessageToQueue(message);
-
-                std::fill(read_buffer.begin(), read_buffer.end(), 0); // clear the buffer before next read
-                client_message = "";
-            }
+            Message message{user, client_message};
+            std::cout << user.m_username << " said: " << client_message;
+            addMessageToQueue(message);
         }
-   }
+    }
+}
+
+std::string Server::readFromClient(int client_fd, std::function<void()>&& callback){
+    std::vector<char> read_buffer(2048);
+    ssize_t buf_size = 0;
+    std::string client_message;
+    buf_size = read(client_fd, read_buffer.data(), read_buffer.size());
+    if(buf_size < 0){
+        throw std::runtime_error("Failed to read client message!");
+    }else if(buf_size == 0){
+        callback();
+        throw std::runtime_error("Client disconnected");
+    }
+    read_buffer.push_back('\0');
+    client_message = std::string(read_buffer.data(), buf_size);
+    std::fill(read_buffer.begin(), read_buffer.end(), 0);
+    
+    return client_message;
 }
 
 int Server::getServerSocket() const{

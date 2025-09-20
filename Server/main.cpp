@@ -2,6 +2,7 @@
 #include <iostream>
 #include <memory>
 #include <netinet/in.h>
+#include <ostream>
 #include <stdexcept>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -31,14 +32,15 @@ int main(){
    
     while(true){
         client_fd = accept(server->getServerSocket(),reinterpret_cast<sockaddr*>(client_addr.get()), &client_addr_len);
-        try{
-            std::thread client_thread([&server, client_fd](){
+        
+        std::thread client_thread([&server, client_fd](){
+            try{
                 server->handleClientConnection(client_fd);
-            });
-            client_thread.detach();
-        }catch(std::runtime_error e){
-            std::cerr << e.what();
-        }
+            }catch(std::runtime_error e){
+                std::cerr << "Client thread threw an exception: " << e.what() << std::endl;
+            }
+        });
+        client_thread.detach();
     }
 
     return 0;
